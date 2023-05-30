@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactPaginate } from 'react';
 import '../css/RegisterPacient.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
@@ -267,7 +267,7 @@ const PersonCreateForm = () => {
           Authorization: user
         }
       });
-      
+
       if (response.data) {
         alert('ID Card Number Generated: ' + response.data.idCardNumber);
         navigate("/NewPatient");
@@ -514,177 +514,104 @@ const PersonCreateForm = () => {
   );
 };
 
+const PersonEditForm = () => {
+};
+
 const PersonListForm = () => {
-  const { user } = useAuth();
-
-  const [personData, setPersonData] = useState({
-      idCardNumber: '',
-      identification: '',
-      firstname: '',
-      secondname: '',
-      paternallastname: '',
-      maternalLastname: '',
-      gender: '',
-      ethnicGroup: '',
-      occupation: '',
-      birthdate: '',
-      maritalStatus: '',
-      phonenumber: '',
-      address: '',
-      educationalLevel: '',
-      related: '',
-      relationship: '',
-  });
-
-  const [appointmentData, setAppointmentData] = useState({
-      period: '',
-      medicalSpecialization: '',
-      person: '',
-      attentionDate: '',
-      observation: ''
-  });
-
   const [personList, setPersonList] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const perPage = 10; // Cantidad de elementos por página
 
   useEffect(() => {
-      // Realizar solicitud HTTP a la API para obtener los datos de las personas
-      axios
-          .get(personsUrl, {
-              headers: {
-                  Authorization: user
-              }
-          })
-          .then((response) => {
-              // Actualizar el estado con los datos recibidos de la API
-              setPersonList(response.data.persons);
-          })
-          .catch((error) => {
-              console.error('Error al obtener los datos de las personas:', error);
-          });
-  }, []);
+    fetchPersonData(currentPage);
+  }, [currentPage]);
 
+  const fetchPersonData = (page) => {
+    // Calcular el índice de inicio para la página actual
+    const startIndex = page * perPage;
 
-  const handleChange = (e) => {
-      setPersonData({
-          ...personData,
-          [e.target.name]: e.target.value,
+    // Realizar solicitud HTTP a la API para obtener los datos de las personas
+    axios
+      .get(`https://api.example.com/people?_start=${startIndex}&_limit=${perPage}`)
+      .then((response) => {
+        // Actualizar el estado con los datos recibidos de la API
+        setPersonList(response.data);
+
+        // Obtener la cantidad total de personas en la API
+        axios.get('https://api.example.com/people/count').then((countResponse) => {
+          // Calcular la cantidad total de páginas
+          const totalCount = countResponse.data;
+          const totalPages = Math.ceil(totalCount / perPage);
+          setTotalPages(totalPages);
+        });
+      })
+      .catch((error) => {
+        console.error('Error al obtener los datos de las personas:', error);
       });
   };
 
-  const handleSubmit = (e) => {
-      e.preventDefault();
-      setAppointmentData({
-          period: '',
-          medicalSpecialization: '',
-          person: '',
-          attentionDate: '',
-          observation: '',
-      });
-      setPersonList([...personList, personData]);
-      setPersonData({
-          idCardNumber: '',
-          identification: '',
-          firstname: '',
-          secondname: '',
-          paternallastname: '',
-          maternalLastname: '',
-          gender: '',
-          ethnicGroup: '',
-          occupation: '',
-          birthdate: '',
-          maritalStatus: '',
-          phonenumber: ''
-      });
+  const handlePageChange = (selectedPage) => {
+    setCurrentPage(selectedPage.selected);
   };
 
   return (
-      <div>
-          <form onSubmit={handleSubmit}>
-              <div>
-                  <label>Período:</label>
-                  <input
-                      type="text"
-                      name="period"
-                      value={appointmentData.period}
-                      onChange={handleChange}
-                  />
-              </div>
-              <div>
-                  <label>Especialización médica:</label>
-                  <input
-                      type="text"
-                      name="medicalSpecialization"
-                      value={appointmentData.medicalSpecialization}
-                      onChange={handleChange}
-                  />
-              </div>
-              <div>
-                  <label>Persona:</label>
-                  <input
-                      type="text"
-                      name="person"
-                      value={appointmentData.person}
-                      onChange={handleChange}
-                  />
-              </div>
-              <div>
-                  <label>Fecha de atención:</label>
-                  <input
-                      type="text"
-                      name="attentionDate"
-                      value={appointmentData.attentionDate}
-                      onChange={handleChange}
-                  />
-              </div>
-              <div>
-                  <label>Observación:</label>
-                  <input
-                      type="text"
-                      name="observation"
-                      value={appointmentData.observation}
-                      onChange={handleChange}
-                  />
-              </div>
-              <button type="submit">Guardar</button>
-          </form>
-
-          <table>
-              <thead>
-                  <tr>
-                      <th>Número de carné</th>
-                      <th>Primer nombre</th>
-                      <th>Segundo nombre</th>
-                      <th>Apellido paterno</th>
-                      <th>Apellido materno</th>
-                      <th>Género</th>
-                      <th>Grupo étnico</th>
-                      <th>Ocupación</th>
-                      <th>Fecha de nacimiento</th>
-                      <th>Estado civil</th>
-                      <th>Número de teléfono</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {personList.map((person, index) => (
-                      <tr key={index}>
-                          <td>{person.idCardNumber}</td>
-                          <td>{person.firstname}</td>
-                          <td>{person.secondname}</td>
-                          <td>{person.paternallastname}</td>
-                          <td>{person.maternalLastname}</td>
-                          <td>{person.gender}</td>
-                          <td>{person.ethnicGroup}</td>
-                          <td>{person.occupation}</td>
-                          <td>{person.birthdate}</td>
-                          <td>{person.maritalStatus}</td>
-                          <td>{person.phonenumber}</td>
-                      </tr>
-                  ))}
-              </tbody>
-          </table>
-      </div>
+    <div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Número de carné</th>
+            <th>Número de identificación</th>
+            <th>Primer nombre</th>
+            <th>Segundo nombre</th>
+            <th>Apellido paterno</th>
+            <th>Apellido materno</th>
+            <th>Género</th>
+            <th>Grupo étnico</th>
+            <th>Ocupación</th>
+            <th>Fecha de nacimiento</th>
+            <th>Estado civil</th>
+            <th>Número de teléfono</th>
+            <th>Dirección</th>
+            <th>Nivel de educación</th>
+            <th>Persona relacionada</th>
+            <th>Relación</th>
+            <th>Fecha de creación</th>
+            <th>Imagen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {personList.map((person) => (
+            <tr key={person._id}>
+              <td>{person.idNumber}</td>
+              <td>{person.idCardNumber}</td>
+              <td>{person.identification}</td>
+              <td>{person.firstname}</td>
+              <td>{person.secondname}</td>
+              <td>{person.paternallastname}</td>
+              <td>{person.maternalLastname}</td>
+              <td>{person.gender}</td>
+              <td>{person.ethnicGroup}</td>
+              <td>{person.occupation}</td>
+              <td>{person.birthdate}</td>
+              <td>{person.maritalStatus}</td>
+              <td>{person.phonenumber}</td>
+              <td>{person.address}</td>
+              <td>{person.educationalLevel}</td>
+              <td>{person.related}</td>
+              <td>{person.relationship}</td>
+              <td>{person.creationDate}</td>
+              <td>{person.image}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
-};
+}
 
 export default PersonCreateForm;
 export { PersonListForm };
+export { PersonEditForm };

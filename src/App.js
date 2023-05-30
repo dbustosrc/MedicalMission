@@ -6,7 +6,8 @@ import HomeForm from "./pages/HomeForm";
 import SignUpForm from "./pages/SignUpForm";
 import LoginForm from "./pages/LoginForm";
 import LogoutForm from "./pages/LogoutForm";
-import PersonCreateForm, { PersonListForm } from "./pages/PersonForms";
+import PersonCreateForm, { PersonEditForm, PersonListForm } from "./pages/PersonForms";
+import AppointmentCreateForm from "./pages/AppointmentsForm";
 import UnauthorizedForm from "./pages/UnauthorizedForm";
 
 const App = () => {
@@ -21,8 +22,10 @@ const App = () => {
             <Route path="/logout" element={<LogoutForm />} />
             <Route path="/unauthorized" element={<UnauthorizedForm />} />
             <Route element={<RequireAuth />}>
-              <Route path="/NewPatient" element={<PersonCreateForm />} />
-              <Route path="/PersonsList" element={<PersonListForm />} />
+              <Route path="/CreatePerson" element={<PersonCreateForm />} />
+              <Route path="/EditPerson" element={<PersonEditForm />} />
+              <Route path="/ListPersons" element={<PersonListForm />} />
+              <Route path="/Appointments" element={<AppointmentCreateForm />} />
             </Route>
           </Route>
         </Routes>

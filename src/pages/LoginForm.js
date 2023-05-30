@@ -10,57 +10,58 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import LockIcon from '@mui/icons-material/Lock';
+import EmailIcon from '@mui/icons-material/Email';
 
 import { useAuth } from "../context/Auth";
 import { API_BASE_URL } from '../config';
 
-const baseUrl = API_BASE_URL + 'loginUser';
+const baseUrl = API_BASE_URL.URI + 'loginUser';
 
 const LoginForm = () => {
-    const [password, setPassword] = useState('');
-    const [email, setEmail] = useState("");
     const { setUser } = useAuth();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+    const handleClickShowPassword = () => {
+        setShowPassword((prevShowPassword) => !prevShowPassword);
+    };
     const handleMouseDownPassword = (event) => {
         event.preventDefault();
     };
 
-    /*   const [form, setForm] = useState({
-           email: '',
-           password: '',
-           gethash: 'x',
-       });*/
+    const [values, setValues] = useState({
+        email: "",
+        password: "",
+        gethash: "X",
+    });
+
     const [error, setError] = useState(false);
 
+    const handleChange = (prop) => (event) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setError(false);
+    };
 
-    /*    const handleChange = (e) => {
-            const { name, value } = e.target;
-            setForm((prevForm) => ({
-                ...prevForm,
-                [name]: value,
-            }));
-            setError(false);
-        };*/
     const signup = useCallback(
         async (e) => {
             e.preventDefault();
             navigate("/signup");
-        }
+        },
+        [navigate]
     );
 
     const login = useCallback(
         async (e) => {
             e.preventDefault();
-
             try {
-                console.log({ email, password, gethash: 'x' });
-                const loginResponse = await axios.post(baseUrl, { email, password, gethash: 'x' });
-                console.log(loginResponse);
+                console.log(API_BASE_URL);
+                const loginResponse = await axios.post(baseUrl, values);
                 if (loginResponse.data.token) {
                     setUser(loginResponse.data.token);
-                    navigate("/NewPatient");
+                    navigate("/CreatePerson");
                 } else {
                     setError(true); // Error de autenticación
                 }
@@ -68,7 +69,7 @@ const LoginForm = () => {
                 setError(true); // Error de autenticación
             }
         },
-        [email, password]
+        [values, setUser, navigate]
     );
 
     //    const { email, password } = form;
@@ -77,25 +78,35 @@ const LoginForm = () => {
 
     return (
         <Container maxWidth="sm">
-            <h1>Login Page</h1>
-            <TextField
-                label="E-mail"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <FormControl sx={{ m: 1, width: '25ch' }} variant="outlined">
+            <h1>Login</h1>
+            <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+                <InputLabel htmlFor="outlined-adornment-email">Email</InputLabel>
+                <OutlinedInput
+                    id="outlined-adornment-email"
+                    value={values.email}
+                    onChange={handleChange("email")}
+                    type="email"
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <EmailIcon />
+                        </InputAdornment>
+                    }
+                    label="Email"
+                />
+            </FormControl>
+
+            <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
                 <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
                 <OutlinedInput
                     id="outlined-adornment-password"
                     type={showPassword ? 'text' : 'password'}
+                    value={values.password}
+                    onChange={handleChange("password")}
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <LockIcon />
+                        </InputAdornment>
+                    }
                     endAdornment={
                         <InputAdornment position="end">
                             <IconButton
@@ -111,47 +122,15 @@ const LoginForm = () => {
                     label="Password"
                 />
             </FormControl>
-            <Button variant="contained" onClick={login}>
-                Login
-            </Button>
-            <Button variant="contained" onClick={signup}>
-                Sign Up
-            </Button>
-        </Container>
-
-        /*<div className="containerPrincipal">
-            <div className="containerSecundario">
-                <div className="form-group">
-                    <label>Email: </label>
-                    <br />
-                    <input
-                        type="text"
-                        className={emailClassName}
-                        name="email"
-                        value={email}
-                        onChange={handleChange}
-                    />
-                    <br />
-                    <label>Contraseña: </label>
-                    <br />
-                    <input
-                        type="password"
-                        className={passwordClassName}
-                        name="password"
-                        value={password}
-                        onChange={handleChange}
-                    />
-                    {error && <div className="invalid-feedback">Datos incorrectos</div>}
-                    <br />
-                    <button className="btn btn-primary" onClick={login}>
-                        Login
-                    </button>
-                    <button className="btn btn-primary" onClick={signup}>
-                        Sign Up
-                    </button>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '4rem' }}>
+                <Button variant="contained" color="primary" onClick={login} size="large" sx={{ width: '30%' }}>
+                    Login
+                </Button>
+                <Button variant="contained" color="secondary" onClick={signup} size="large" sx={{ width: '30%' }}>
+                    Sign Up
+                </Button>
             </div>
-        </div>*/
+        </Container>
     );
 };
 
