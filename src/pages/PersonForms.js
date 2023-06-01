@@ -1,44 +1,55 @@
-import React, { useState, useEffect, ReactPaginate } from 'react';
+import React, { useState, useEffect, ReactPaginate, useRef } from 'react';
 import '../css/RegisterPacient.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
-import Modal from 'react-modal';
+//import Modal from 'react-modal';
 import AddressForm from './AddressForms';
 import OccupationForm from './OccupationForms';
 import { API_BASE_URL } from '../config';
-import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useAuth } from "../context/Auth";
 import { useNavigate } from "react-router-dom";
+import dayjs from 'dayjs';
+
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+
+import Button from "@mui/material/Button";
+
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Box from '@mui/material/Box';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import Grid from "@mui/material/Grid";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/material.css'
 
 // Define el elemento de la aplicación principal
-Modal.setAppElement('#root');
+//Modal.setAppElement('#root');
 
-const personsUrl = API_BASE_URL + 'persons';
-const personUrl = API_BASE_URL + 'person';
-const ethnicGroupsUrl = API_BASE_URL + 'ethnic-groups';
-const occupationsUrl = API_BASE_URL + 'occupations';
-const countriesUrl = API_BASE_URL + 'countries';
-const regionsUrl = API_BASE_URL + 'regions';
-const regionsByCountryIdUrl = API_BASE_URL + 'regions/country/';
-const addressesUrl = API_BASE_URL + 'addresses/getAddressesByParams';
-const educationalLevelsUrl = API_BASE_URL + 'educational-levels';
+const personsUrl = API_BASE_URL.URI + 'persons';
+const personUrl = API_BASE_URL.URI + 'person';
+const ethnicGroupsUrl = API_BASE_URL.URI + 'ethnic-groups';
+const occupationsUrl = API_BASE_URL.URI + 'occupations';
+const countriesUrl = API_BASE_URL.URI + 'countries';
+const regionsUrl = API_BASE_URL.URI + 'regions';
+const regionsByCountryIdUrl = API_BASE_URL.URI + 'regions/country/';
+const addressesUrl = API_BASE_URL.URI + 'addresses/getAddressesByParams';
+const educationalLevelsUrl = API_BASE_URL.URI + 'educational-levels';
 
-const Button = ({ handleShowForm }) => (
+/*const addressButton = ({ handleShowForm }) => (
   <div>
     <button className="btn btn-primary" onClick={handleShowForm}>Create Address</button>
   </div>
-);
+);*/
 
 const PersonCreateForm = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [ethnicGroupform, ethnicGroupsetForm] = useState({
-    id: '',
-    name: ''
-  });
-
   const [form, setForm] = useState({
     identification: '',
     firstname: '',
@@ -56,6 +67,13 @@ const PersonCreateForm = () => {
     related: null,
     relationship: null,
     image: null
+  });
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [error, setError] = useState(false);
+  const [ethnicGroupform, ethnicGroupsetForm] = useState({
+    id: '',
+    name: ''
   });
 
   const genderOptions = [
@@ -91,6 +109,9 @@ const PersonCreateForm = () => {
       id: "STATUS_NON-MARITAL-UNION"
     }
   ];
+
+  const occupationFormRef = useRef();
+  const addressFormRef = useRef();
 
   const [genderParam, setGenderParam] = React.useState(genderOptions[0]);
   const [maritalStatusParam, setMaritalStatusParam] = React.useState(maritalStatusOptions[0]);
@@ -244,12 +265,19 @@ const PersonCreateForm = () => {
     setSelectedAddress(value);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prevState) => ({
-      ...prevState,
-      [name]: value
-    }));
+  const handleChange = (prop) => (event) => {
+    setForm({ ...form, [prop]: event.target.value });
+    setError(false);
+  };
+
+  const handlePhonenumberChange = (value) => {
+    setForm({ ...form, phonenumber: value });
+    setError(false);
+  };
+
+  const handleBirthDateChange = (value) => {
+    setForm({ ...form, birthdate: value });
+    setError(false);
   };
 
   const registPerson = async () => {
@@ -270,9 +298,25 @@ const PersonCreateForm = () => {
 
       if (response.data) {
         alert('ID Card Number Generated: ' + response.data.idCardNumber);
-        navigate("/NewPatient");
       }
-      setForm();
+      setForm({
+        identification: '',
+        firstname: '',
+        secondname: '',
+        paternallastname: '',
+        maternalLastname: '',
+        gender: '',
+        ethnicGroup: [],
+        occupation: '',
+        birthdate: '',
+        maritalStatus: '',
+        phonenumber: '',
+        address: [],
+        educationalLevel: '',
+        related: null,
+        relationship: null,
+        image: null
+      });
     } catch (error) {
       alert('Error: ' + error.message);
       console.log(error.mesage);
@@ -295,221 +339,342 @@ const PersonCreateForm = () => {
     setIsOccupationModalOpen(false);
   };
 
-  const handleOccupationFormSubmit = async (formData) => {
-    // Realizar las acciones necesarias con los datos del formulario
-    closeOccupationModal();
+  const handleOccupationFormSubmit = (e) => {
+    if (occupationFormRef.current) {
+      occupationFormRef.current.handleSubmit(e);
+    }
+  };
+
+  const handleAddressFormSubmit = (e) => {
+    if (addressFormRef.current) {
+      addressFormRef.current.handleSubmit(e);
+    }
   };
 
   return (
     <div className="form-group">
-      <h1>Person and Appointments</h1>
-      <label>Identification: </label>
-      <input
-        type="text"
-        className="form-control"
-        name="identification"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Firstname: </label>
-      <input
-        type="text"
-        className="form-control"
-        name="firstname"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Secondname: </label>
-      <input
-        type="text"
-        className="form-control"
-        name="secondname"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Paternal Lastname: </label>
-      <input
-        type="text"
-        className="form-control"
-        name="paternallastname"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Maternal Lastname: </label>
-      <input
-        type="text"
-        className="form-control"
-        name="maternalLastname"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Gender:</label>
-      <Autocomplete
-        value={genderParam}
-        onChange={(event, newValue) => {
-          setGenderParam(newValue);
-        }}
-        disablePortal
-        id="gender"
-        getOptionLabel={(option) => option.name}
-        options={genderOptions}
-        sx={{ width: 300 }}
-        renderOption={(props, option) => (
-          <Box component="li" {...props} key={option.id}>
-            {option.name}
-          </Box>
-        )}
-        renderInput={(params) => <TextField {...params} label="Gender" />}
-        required />
-      <br />
-      <label>Ethnic Group:</label>
-      <Autocomplete
-        options={ethnicGroups}
-        getOptionLabel={(ethnicGroup) => ethnicGroup.name}
-        value={selectedEthnicGroup}
-        onChange={handleEthnicGroupChange}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Ethnic Group"
-            variant="outlined"
+      <h1>Create Person</h1>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <InputLabel htmlFor="outlined-adornment-text">Identification</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-text"
+            value={form.identification}
+            onChange={handleChange("identification")}
+            type="text"
+            label="Identification"
+            required="true"
           />
-        )}
-      />
-      <label>Occupation:</label>
-      <Autocomplete
-        options={occupations}
-        getOptionLabel={(occupation) => occupation.name}
-        value={selectedOccupation}
-        onChange={handleOccupationChange}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Occupation"
-            variant="outlined"
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <InputLabel htmlFor="outlined-adornment-text">Firstname</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-text"
+            value={form.firstname}
+            onChange={handleChange("firstname")}
+            type="text"
+            label="Firstname"
           />
-        )}
-      />
-      <button className="btn btn-primary" onClick={openOccupationModal}>Add Occupation</button>
-      <Modal
-        isOpen={isOccupationModalOpen}
-        onRequestClose={closeOccupationModal}
-        contentLabel="Occupation Modal"
-        ariaHideApp={false}
-      >
-        <h2>Add Occupation</h2>
-        <OccupationForm onSubmit={handleOccupationFormSubmit} />
-        <button onClick={closeOccupationModal}>Cancel</button>
-      </Modal>
-      <br />
-      <label>Birthdate:</label>
-      <input
-        type="date"
-        className="form-control"
-        name="birthdate"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Marital Status:</label>
-      <Autocomplete
-        value={maritalStatusParam}
-        onChange={(event, newValue) => {
-          setMaritalStatusParam(newValue);
-        }}
-        disablePortal
-        id="gender"
-        getOptionLabel={(option) => option.name}
-        options={maritalStatusOptions}
-        sx={{ width: 300 }}
-        renderOption={(props, option) => (
-          <Box component="li" {...props} key={option.id}>
-            {option.name}
-          </Box>
-        )}
-        renderInput={(params) => <TextField {...params} label="Marital Status" />}
-        required />
-      <br />
-      <label>Phone Number: </label>
-      <input
-        type="text"
-        className="form-control"
-        name="phonenumber"
-        onChange={handleChange}
-      />
-      <br />
-      <label>Educational Level:</label>
-      <Autocomplete
-        options={educationalLevels}
-        getOptionLabel={(educationalLevel) => educationalLevel.name}
-        value={selectedEducationalLevel}
-        onChange={handleEducationalLevelChange}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Educational Level"
-            variant="outlined"
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <InputLabel htmlFor="outlined-adornment-text">Secondname</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-text"
+            value={form.secondname}
+            onChange={handleChange("secondname")}
+            type="text"
+            label="Secondname"
           />
-        )}
-      />
-      <div>
-        <h4>Address</h4>
-        <label>Country:</label>
-        <Autocomplete
-          options={countries}
-          getOptionLabel={(country) => country.name}
-          value={selectedCountry}
-          onChange={handleCountryChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Country"
-              variant="outlined"
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <InputLabel htmlFor="outlined-adornment-text">Paternal Lastname</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-text"
+            value={form.paternallastname}
+            onChange={handleChange("paternallastname")}
+            type="text"
+            label="Paternal Lastname"
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <InputLabel htmlFor="outlined-adornment-text">Maternal Lastname</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-text"
+            value={form.maternallastname}
+            onChange={handleChange("maternallastname")}
+            type="text"
+            label="Maternal Lastname"
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <Autocomplete
+            value={genderParam}
+            onChange={(event, newValue) => {
+              setGenderParam(newValue);
+            }}
+            disablePortal
+            id="gender"
+            getOptionLabel={(option) => option.name}
+            options={genderOptions}
+            sx={{ width: 300 }}
+            renderOption={(props, option) => (
+              <Box component="li" {...props} key={option.id}>
+                {option.name}
+              </Box>
+            )}
+            renderInput={(params) => <TextField {...params} label="Gender" />}
+            required />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <Autocomplete
+            options={ethnicGroups}
+            getOptionLabel={(ethnicGroup) => ethnicGroup.name}
+            value={selectedEthnicGroup}
+            onChange={handleEthnicGroupChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Ethnic Group"
+                variant="outlined"
+              />
+            )}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <Grid container spacing={2}>
+          <Grid item xs={9}>
+            <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+              <Autocomplete
+                options={occupations}
+                getOptionLabel={(occupation) => occupation.name}
+                value={selectedOccupation}
+                onChange={handleOccupationChange}
+                renderInput={(params) => (
+                  <TextField {...params} label="Occupation" variant="outlined" />
+                )}
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={3}>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{
+                mt: "10px",
+                color: "#ffffff",
+                backgroundColor: "#d01716",
+                ml: "2em",
+              }}
+              onClick={openOccupationModal}
+            >
+              Create Occupation
+            </Button>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          {/*<Modal
+            isOpen={isOccupationModalOpen}
+            onRequestClose={closeOccupationModal}
+            contentLabel="Occupation Modal"
+            ariaHideApp={false}
+          >
+            <h2>Add Occupation</h2>
+            <OccupationForm onSubmit={handleOccupationFormSubmit} />
+            <button onClick={closeOccupationModal}>Cancel</button>
+            </Modal>*/}
+          <Dialog open={isOccupationModalOpen} onClose={closeOccupationModal}>
+            <DialogTitle>Create Occupation</DialogTitle>
+            <DialogContent>
+              {/* Contenido del formulario de creación de ocupación */}
+              <OccupationForm ref={occupationFormRef} />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={closeOccupationModal}>Cancel</Button>
+              <Button onClick={handleOccupationFormSubmit}>Create</Button>
+            </DialogActions>
+          </Dialog>
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Birthdate"
+              value={form.birthdate}
+              onChange={handleBirthDateChange}
             />
-          )}
-        />
-        <label>Region:</label>
-        <Autocomplete
-          options={regions}
-          getOptionLabel={(region) => region.name}
-          value={selectedRegion}
-          onChange={handleRegionChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Region"
-              variant="outlined"
-              required />
-          )}
-        />
-        <label>Address:</label>
-        <Autocomplete
-          options={addresses}
-          getOptionLabel={(address) => address.mainStreet}
-          value={selectedAddress}
-          onChange={handleAddressChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Address"
-              variant="outlined"
-              required />
-          )}
-          required />
-        {isAddressModalOpen && <AddressForm />}
-        <Button handleShowForm={openAddressModal} />
-
-        <Modal
-          isOpen={isAddressModalOpen}
-          onRequestClose={closeAddressModal}
-          contentLabel="Address Form Modal"
+          </LocalizationProvider>
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <Autocomplete
+            value={maritalStatusParam}
+            onChange={(event, newValue) => {
+              setMaritalStatusParam(newValue);
+            }}
+            disablePortal
+            id="gender"
+            getOptionLabel={(option) => option.name}
+            options={maritalStatusOptions}
+            sx={{ width: 300 }}
+            renderOption={(props, option) => (
+              <Box component="li" {...props} key={option.id}>
+                {option.name}
+              </Box>
+            )}
+            renderInput={(params) => <TextField {...params} label="Marital Status" />}
+            required />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <PhoneInput value={form.phonenumber} onChange={handlePhonenumberChange} country={'ec'} required />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <Autocomplete
+            options={educationalLevels}
+            getOptionLabel={(educationalLevel) => educationalLevel.name}
+            value={selectedEducationalLevel}
+            onChange={handleEducationalLevelChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Educational Level"
+                variant="outlined"
+              />
+            )}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <Autocomplete
+            options={countries}
+            getOptionLabel={(country) => country.name}
+            value={selectedCountry}
+            onChange={handleCountryChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Country"
+                variant="outlined"
+              />
+            )}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          <Autocomplete
+            options={regions}
+            getOptionLabel={(region) => region.name}
+            value={selectedRegion}
+            onChange={handleRegionChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Region"
+                variant="outlined" />
+            )}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <Grid container spacing={2}>
+          <Grid item xs={9}>
+            <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+              <Autocomplete
+                options={addresses}
+                getOptionLabel={(address) => `${address.city}, ${address.district}, ${address.mainStreet}, ${address.numbering}`}
+                value={selectedAddress}
+                onChange={handleAddressChange}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Address"
+                    variant="outlined"
+                    required
+                  />
+                )}
+                required
+              />
+            </FormControl>
+          </Grid>
+          <Grid item xs={3}>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{
+                mt: "10px",
+                color: "#ffffff",
+                backgroundColor: "#d01716",
+                ml: "2em",
+              }}
+              onClick={openAddressModal}
+            >
+              Create Address
+            </Button>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+        <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
+          {/*<Modal
+            isOpen={isAddressModalOpen}
+            onRequestClose={closeAddressModal}
+            contentLabel="Address Form Modal"
+          >
+            <h2>Address Form</h2>
+            <AddressForm />
+            <button onClick={closeAddressModal}>Close</button>
+            </Modal>*/}
+          <Dialog open={isAddressModalOpen} onClose={closeAddressModal}>
+            <DialogTitle>Create Address</DialogTitle>
+            <DialogContent>
+              {/* Contenido del formulario de creación de ocupación */}
+              <AddressForm ref={addressFormRef} />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={closeAddressModal}>Cancel</Button>
+              <Button onClick={handleAddressFormSubmit}>Create</Button>
+            </DialogActions>
+          </Dialog>
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sx={{ ml: "5em", mr: "5em" }}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth="true"
+          size="large"
+          sx={{ mt: "10px", color: "#ffffff", backgroundColor: "#d01716" }}
+          onClick={registPerson}
         >
-          <h2>Address Form</h2>
-          <AddressForm />
-          <button onClick={closeAddressModal}>Close</button>
-        </Modal>
-        <br />
-      </div>
-      <button className="btn btn-primary" onClick={registPerson}>Create</button>
+          Create Person
+        </Button>
+      </Grid>
     </div>
   );
 };

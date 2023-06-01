@@ -18,14 +18,14 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/" element={<HomeForm />} />
             <Route path="/signup" element={<SignUpForm />} />
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/logout" element={<LogoutForm />} />
+            <Route path="/signin" element={<LoginForm />} />
+            <Route path="/signout" element={<LogoutForm />} />
             <Route path="/unauthorized" element={<UnauthorizedForm />} />
             <Route element={<RequireAuth />}>
               <Route path="/CreatePerson" element={<PersonCreateForm />} />
               <Route path="/EditPerson" element={<PersonEditForm />} />
               <Route path="/ListPersons" element={<PersonListForm />} />
-              <Route path="/Appointments" element={<AppointmentCreateForm />} />
+              <Route path="/CreateAppointment" element={<AppointmentCreateForm />} />
             </Route>
           </Route>
         </Routes>

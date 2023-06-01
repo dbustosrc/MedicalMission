@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import axios from 'axios';
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { API_BASE_URL } from '../config';
 import { useAuth } from "../context/Auth";
 
-const addressesUrl = API_BASE_URL + 'addresses';
-const regionsUrl = API_BASE_URL + 'regions';
+import Grid from "@mui/material/Grid";
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
 
-const AddressCreateForm = () => {
+const addressesUrl = API_BASE_URL.URI + 'addresses';
+const regionsUrl = API_BASE_URL.URI + 'regions';
+
+const AddressCreateForm = forwardRef((props, ref) => {
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const { user } = useAuth();
@@ -45,11 +50,13 @@ const AddressCreateForm = () => {
     setSelectedRegion(value);
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (prop) => (event) => {
+    setFormData({ ...formData, [prop]: event.target.value });
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    await handleSubmit(e);
   };
 
   const handleSubmit = async (e) => {
@@ -81,50 +88,121 @@ const AddressCreateForm = () => {
     });
   };
 
+  // Utiliza useImperativeHandle para exponer la función handleSubmit
+  useImperativeHandle(ref, () => ({
+    handleSubmit: handleSubmit
+  }));
+
   return (
     <div>
-      <h2>Ingresar información de dirección</h2>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="mainStreet">Calle principal:</label>
-        <input type="text" id="mainStreet" name="mainStreet" value={formData.mainStreet} onChange={handleChange} required />
-
-        <label htmlFor="numbering">Número:</label>
-        <input type="text" id="numbering" name="numbering" value={formData.numbering} onChange={handleChange} />
-
-        <label htmlFor="intersection">Intersección:</label>
-        <input type="text" id="intersection" name="intersection" value={formData.intersection} onChange={handleChange} />
-
-        <label htmlFor="reference">Referencia:</label>
-        <input type="text" id="reference" name="reference" value={formData.reference} onChange={handleChange} />
-
-        <label htmlFor="postalCode">Código postal:</label>
-        <input type="text" id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleChange} />
-
-        <label htmlFor="city">Ciudad:</label>
-        <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} required />
-
-        <label htmlFor="district">Distrito:</label>
-        <input type="text" id="district" name="district" value={formData.district} onChange={handleChange} required />
-
-        <label htmlFor="region">Región:</label>
-        <Autocomplete
-          options={regions}
-          getOptionLabel={(region) => region.name}
-          value={selectedRegion}
-          onChange={handleRegionChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Region"
-              variant="outlined"
-              required />
-          )}
-        />
-
-        <button type="submit">Guardar</button>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <Autocomplete
+              options={regions}
+              getOptionLabel={(region) => region.name}
+              value={selectedRegion}
+              onChange={handleRegionChange}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Region"
+                  variant="outlined"
+                  required />
+              )}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">City</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.city}
+              onChange={handleChange("city")}
+              type="text"
+              label="City"
+              required
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">District</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.district}
+              onChange={handleChange("district")}
+              type="text"
+              label="District"
+              required
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">Main Street</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.mainStreet}
+              onChange={handleChange("mainStreet")}
+              type="text"
+              label="Main Street"
+              required="true"
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">Street Number</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.numbering}
+              onChange={handleChange("numbering")}
+              type="text"
+              label="Street Number"
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">Intersection</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.intersection}
+              onChange={handleChange("intersection")}
+              type="text"
+              label="Intersection"
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">Reference</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.reference}
+              onChange={handleChange("reference")}
+              type="text"
+              label="Reference"
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sx={{ ml: "3em", mr: "3em" }}>
+          <FormControl sx={{ m: 1 }} variant="outlined" fullWidth>
+            <InputLabel htmlFor="outlined-adornment-text">Postal Code</InputLabel>
+            <OutlinedInput
+              id="outlined-adornment-text"
+              value={formData.postalCode}
+              onChange={handleChange("postalCode")}
+              type="text"
+              label="Postal Code"
+            />
+          </FormControl>
+        </Grid>
       </form>
     </div>
   );
-};
+});
 
 export default AddressCreateForm;
