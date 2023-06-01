@@ -17,6 +17,12 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Button from '@mui/material/Button';
+//import { DatePicker, DateTimePicker } from '@mui/x-date-pickers';
+//import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+//import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+//import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+//import { format } from 'date-fns';
+//import DateFnsAdapter from '@mui/pickers/adapter/date-fns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -99,21 +105,17 @@ const PersonListForm = () => {
                 });
         }
         const fetchAppointmentList = async () => {
-            // Realizar solicitud HTTP a la API para obtener los datos de las personas
-            axios
-                .get(appointmetsUrl, appointmentParams, {
+            try {
+                const response = await axios.get(appointmetsUrl, {
                     headers: {
                         Authorization: user
                     }
-                })
-                .then((response) => {
-                    // Actualizar el estado con los datos recibidos de la API
-                    setAppointmentList(response.data);
-                })
-                .catch((error) => {
-                    console.error('Error al obtener los datos de las citas:', error);
                 });
-        }
+                setAppointmentList(response.data);
+            } catch (error) {
+                console.error('Error al obtener los datos de las citas:', error);
+            }
+        };
         const fetchPersons = async () => {
             // Realizar solicitud HTTP a la API para obtener los datos de las personas
             axios
@@ -150,13 +152,13 @@ const PersonListForm = () => {
         fetchPeriods();
         fetchAppointmentList();
         fetchPersons();
-    }, [user, personList, appointmentList]);
+    }, [user, selectedPerson, personList, appointmentList]);
 
     const handleAttentionDateChange = (value) => {
-        console.log(value);
         setAppointmentData({ ...appointmentData, attentionDate: value });
         setError(false);
     };
+
     const handleChange = (prop) => (event) => {
         setAppointmentData({ ...appointmentData, [prop]: event.target.value });
         setError(false);
@@ -168,17 +170,18 @@ const PersonListForm = () => {
             appointmentData.person = selectedPerson._id;
             appointmentData.period = selectedPeriod._id;
             appointmentData.medicalSpecialization = selectedMedicalSpecialty._id;
+            appointmentData.attentionDate = "2023-06-21";
             console.log(appointmentData);
             const appointmentResponse = await axios.post(appointmentUrl, appointmentData, {
-              headers: {
-                Authorization: user
-              }
+                headers: {
+                    Authorization: user
+                }
             });
             console.log(appointmentResponse);
-          }
-          catch (error) {
+        }
+        catch (error) {
             console.log(error);
-          }
+        }
 
         setAppointmentData({
             period: '',
@@ -205,7 +208,7 @@ const PersonListForm = () => {
         });
     };
 
-    
+
 
     return (
         <div>
@@ -268,7 +271,7 @@ const PersonListForm = () => {
                     <FormControl sx={{ m: 1 }} variant="outlined" fullWidth error={error}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
-                                label="Attention Date"
+                                label="Attention date"
                                 value={appointmentData.attentionDate}
                                 onChange={handleAttentionDateChange}
                             />
@@ -301,29 +304,30 @@ const PersonListForm = () => {
                     </Button>
                 </Grid>
             </form>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Period</th>
-                        <th>Medical Specialty</th>
-                        <th>Attention Date</th>
-                        <th>Observation</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {appointmentList.map((person, index) => (
-                        <tr key={index}>
-                            <td>{person.period}</td>
-                            <td>{person.medicalSpecialization}</td>
-                            <td>{person.attentionDate}</td>
-                            <td>{person.observation}</td>
-                            <td>{person.status}</td>
+            {selectedPerson && (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Medical Specialty</th>
+                            <th>Attention Date</th>
+                            <th>Observation</th>
+                            <th>Status</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {appointmentList.map((person, index) => (
+                            <tr key={index}>
+                                <td>{person.period}</td>
+                                <td>{person.medicalSpecialization}</td>
+                                <td>{person.attentionDate}</td>
+                                <td>{person.observation}</td>
+                                <td>{person.status}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div >
     );
 };
