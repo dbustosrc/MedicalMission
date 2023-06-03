@@ -16,7 +16,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-
+import { Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import Button from "@mui/material/Button";
 
 import FormControl from '@mui/material/FormControl';
@@ -29,6 +29,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Grid from "@mui/material/Grid";
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/material.css'
+import { CSVLink } from 'react-csv';
+import { saveAs } from 'file-saver';
+import Papa from 'papaparse';
 
 // Define el elemento de la aplicación principal
 //Modal.setAppElement('#root');
@@ -690,7 +693,7 @@ const PersonListForm = () => {
   const perPage = 10; // Cantidad de elementos por página
 
   useEffect(() => {
-    fetchPersonData(currentPage);
+    fetchPersonData(1);
   }, [currentPage]);
 
   const fetchPersonData = (page) => {
@@ -699,18 +702,10 @@ const PersonListForm = () => {
 
     // Realizar solicitud HTTP a la API para obtener los datos de las personas
     axios
-      .get(`https://api.example.com/people?_start=${startIndex}&_limit=${perPage}`)
+      .get(`${personUrl}/idCardNumbers/${page}`)
       .then((response) => {
         // Actualizar el estado con los datos recibidos de la API
         setPersonList(response.data);
-
-        // Obtener la cantidad total de personas en la API
-        axios.get('https://api.example.com/people/count').then((countResponse) => {
-          // Calcular la cantidad total de páginas
-          const totalCount = countResponse.data;
-          const totalPages = Math.ceil(totalCount / perPage);
-          setTotalPages(totalPages);
-        });
       })
       .catch((error) => {
         console.error('Error al obtener los datos de las personas:', error);
@@ -721,61 +716,64 @@ const PersonListForm = () => {
     setCurrentPage(selectedPage.selected);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const csvData = Papa.unparse(personList);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, 'data.csv');
+  };
+
   return (
     <div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Número de carné</th>
-            <th>Número de identificación</th>
-            <th>Primer nombre</th>
-            <th>Segundo nombre</th>
-            <th>Apellido paterno</th>
-            <th>Apellido materno</th>
-            <th>Género</th>
-            <th>Grupo étnico</th>
-            <th>Ocupación</th>
-            <th>Fecha de nacimiento</th>
-            <th>Estado civil</th>
-            <th>Número de teléfono</th>
-            <th>Dirección</th>
-            <th>Nivel de educación</th>
-            <th>Persona relacionada</th>
-            <th>Relación</th>
-            <th>Fecha de creación</th>
-            <th>Imagen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {personList.map((person) => (
-            <tr key={person._id}>
-              <td>{person.idNumber}</td>
-              <td>{person.idCardNumber}</td>
-              <td>{person.identification}</td>
-              <td>{person.firstname}</td>
-              <td>{person.secondname}</td>
-              <td>{person.paternallastname}</td>
-              <td>{person.maternalLastname}</td>
-              <td>{person.gender}</td>
-              <td>{person.ethnicGroup}</td>
-              <td>{person.occupation}</td>
-              <td>{person.birthdate}</td>
-              <td>{person.maritalStatus}</td>
-              <td>{person.phonenumber}</td>
-              <td>{person.address}</td>
-              <td>{person.educationalLevel}</td>
-              <td>{person.related}</td>
-              <td>{person.relationship}</td>
-              <td>{person.creationDate}</td>
-              <td>{person.image}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Grid item xs={12} sx={{ ml: "5em", mr: "5em" }}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth="true"
+          size="large"
+          sx={{ mt: "10px", color: "#ffffff", backgroundColor: "#d01716" }}
+          onClick={handleSubmit}
+        >
+          Download CSV file
+        </Button>
+      </Grid>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>First Name</TableCell>
+              <TableCell>Second Name</TableCell>
+              <TableCell>Maternal Lastname</TableCell>
+              <TableCell>Paternal Lastname</TableCell>
+              <TableCell>Birthdate</TableCell>
+              <TableCell>District</TableCell>
+              <TableCell>City</TableCell>
+              <TableCell>Region</TableCell>
+              <TableCell>Country</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {personList.map((row) => (
+              <TableRow key={row.idCardNumber}>
+                <TableCell>{row.idCardNumber}</TableCell>
+                <TableCell>{row.firstname}</TableCell>
+                <TableCell>{row.secondname}</TableCell>
+                <TableCell>{row.paternallastname} </TableCell>
+                <TableCell>{row.maternalLastname}</TableCell>
+                <TableCell>{row.birthdate}</TableCell>
+                <TableCell>{row.districtName}</TableCell>
+                <TableCell>{row.cityName}</TableCell>
+                <TableCell>{row.regionName}</TableCell>
+                <TableCell>{row.countryName}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
-}
+};
 
 export default PersonCreateForm;
 export { PersonListForm };
