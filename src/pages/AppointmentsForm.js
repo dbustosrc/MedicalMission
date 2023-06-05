@@ -33,6 +33,8 @@ const PersonListForm = () => {
         observation: ''
     });
     const [filteredAppointments, setFilteredAppointments] = useState([]);
+    const [reloadTable, setReloadTable] = useState(false);
+
     // Persons
     const [openPersonList, setOpenPersonList] = useState(false);
     const [persons, setPersons] = useState([]);
@@ -71,7 +73,7 @@ const PersonListForm = () => {
         if (appointmentParams.period && appointmentParams.person) {
             fetchAppointmentList();
         }
-    }, [appointmentParams]);
+    }, [appointmentParams, reloadTable]);
 
     useEffect(() => {
         let active = true;
@@ -145,6 +147,13 @@ const PersonListForm = () => {
         };
     }, [user]);
 
+    useEffect(() => {
+        if (reloadTable) {
+            setReloadTable(false);
+        }
+    }, [reloadTable]);
+    
+
     const handlePersonChange = (event, value) => {
         setSelectedPerson(value);
         if (value) {
@@ -195,13 +204,13 @@ const PersonListForm = () => {
         try {
             appointmentData.person = appointmentParams.person;
             appointmentData.period = appointmentParams.period;
-            console.log(appointmentData);
             const appointmentResponse = await axios.post(appointmentsUrl, appointmentData, {
                 headers: {
                     Authorization: user
                 }
             });
             console.log(appointmentResponse);
+            setReloadTable(true);
         }
         catch (error) {
             console.log(error);
@@ -212,8 +221,7 @@ const PersonListForm = () => {
             medicalSpecialization: '',
             person: '',
             attentionDate: '',
-            observation: '',
-            status: '',
+            observation: ''
         });
     };
 
