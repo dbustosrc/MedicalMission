@@ -48,6 +48,7 @@ const HomeForm = () => {
   });
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [reloadTable, setReloadTable] = useState(false);
+  const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
 
   // Periods
   const [periods, setPeriods] = useState([]);
@@ -62,6 +63,9 @@ const HomeForm = () => {
 
   //Medical Specialty
   const [selectedMedicalSpecialty, setSelectedMedicalSpecialty] = useState(null);
+
+  //Pharmacy
+  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
 
   //Collapsible table
   const [isCollapseOpen, setIsCollapseOpen] = useState(true);
@@ -108,6 +112,22 @@ const HomeForm = () => {
   }, [selectedPeriod]);
 
   useEffect(() => {
+    const fetchAppointmentForPrescriptionsList = async () => {
+      try {
+        const response = await axios.get(
+          `${appointmentsUrl}/period/${appointmentParams.period}/attention-date/${appointmentParams.attentionDate}`,
+          {
+            headers: {
+              Authorization: user,
+            },
+          }
+        );
+        console.log(response);
+        setFilteredPrescriptions(response.data);
+      } catch (error) {
+        console.error('Cannot fetch appointments:', error);
+      }
+    }
     const fetchAppointmentList = async () => {
       try {
         const response = await axios.get(
@@ -131,6 +151,13 @@ const HomeForm = () => {
     } else {
       console.log(appointmentParams.period, appointmentParams.medicalSpecialty, appointmentParams.attentionDate);
     }
+
+    //Filtrar las citas por por recetar
+    if (appointmentParams.period && appointmentParams.attentionDate) {
+      fetchAppointmentForPrescriptionsList();
+    } else {
+      console.log(appointmentParams.period, appointmentParams.attentionDate);
+    }
   }, [appointmentParams, reloadTable]);
 
   const handleReloadTable = () => {
@@ -151,6 +178,7 @@ const HomeForm = () => {
       }));
     }
     handleMedicalSpecialtyChange(event, 0);
+    handlePharmacyChange(event, 0);
   };
 
   const handleAttentionDateChange = (value) => {
@@ -167,6 +195,10 @@ const HomeForm = () => {
 
     handleMedicalSpecialtyChange(this, 0);
   };
+
+  const handlePharmacyChange = (event, value) => {
+    setSelectedPharmacy(value);
+  }
 
   const handleMedicalSpecialtyChange = (event, value) => {
     setSelectedMedicalSpecialty(value);
@@ -190,12 +222,11 @@ const HomeForm = () => {
         <IconButton
           aria-label="expand row"
           size="small"
-          label="Clinics"
           onClick={() => setIsCollapseOpen(!isCollapseOpen)}
         >
           {isCollapseOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           <Typography variant="h5" component="span">
-            Clinics
+            Clinics & Pharmacy
           </Typography>
         </IconButton>
         <Collapse in={isCollapseOpen} timeout="auto" unmountOnExit>
@@ -229,17 +260,73 @@ const HomeForm = () => {
       <Box
         sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', height: '100%' }}
       >
-        {userPharmacyAllocation.map((userAllocation) => (
+        {userPharmacyAllocation.length > 0 && (
           <Tabs
             variant="scrollable"
-            //value={selectedMedicalSpecialty}
-            //onChange={handleMedicalSpecialtyChange}
-            //aria-label="Medical Specialties"
+            value={selectedPharmacy}
+            onChange={handlePharmacyChange}
+            aria-label="Pharmacy"
             scrollButtons="auto"
           >
-            <Tab label={userAllocation.medicalSpecializationName} key={userAllocation._id} />
+            {userPharmacyAllocation.map((userAllocation) => (
+              <Tab label={userAllocation.medicalSpecializationName} key={userAllocation._id} />
+            ))}
           </Tabs>
-        ))}
+        )}
+      </Box>
+      {selectedPharmacy != null && userPharmacyAllocation.length > 0 && (
+        <TableContainer component={Paper}>
+          {filteredPrescriptions
+            .filter(appointment => appointment.status === 'STATUS_PRESCRIBED').length > 0 && (
+              <>
+                <Typography variant='h5' mt={5} display="block" gutterBottom>Prescriptions Queue</Typography>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell />
+                      <StyledTableCell>Appointment Number</StyledTableCell>
+                      <StyledTableCell>Full name</StyledTableCell>
+                      <StyledTableCell>Medical Specialty</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredPrescriptions
+                      .filter(appointment => appointment.status === 'STATUS_PRESCRIBED')
+                      .map(appointment => (
+                        <Row key={appointment._id} row={appointment} handleReloadTable={handleReloadTable} />
+                      ))}
+                  </TableBody>
+                </Table>
+              </>
+            )}
+          {filteredPrescriptions
+            .filter(appointment => appointment.status === 'STATUS_PRESCRIBED_ARCHIVED').length > 0 && (
+              <>
+                <Typography variant='h5' mt={5} display="block" gutterBottom>Archived</Typography>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell />
+                      <StyledTableCell>Appointment Number</StyledTableCell>
+                      <StyledTableCell>Full name</StyledTableCell>
+                      <StyledTableCell>Medical Specialty</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredPrescriptions
+                      .filter(appointment => appointment.status === 'STATUS_PRESCRIBED_ARCHIVED')
+                      .map(appointment => (
+                        <Row key={appointment._id} row={appointment} handleReloadTable={handleReloadTable} />
+                      ))}
+                  </TableBody>
+                </Table>
+              </>
+            )}
+        </TableContainer>
+      )}
+      <Box
+        sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', height: '100%' }}
+      >
         {userAllocations.length > 0 && (
           <Tabs
             variant="scrollable"
@@ -254,7 +341,7 @@ const HomeForm = () => {
           </Tabs>
         )}
       </Box>
-      {selectedMedicalSpecialty != null && (
+      {selectedMedicalSpecialty != null && userAllocations.length > 0 && (
         <TableContainer component={Paper}>
           {filteredAppointments
             .filter(appointment => appointment.status === 'STATUS_ON-HOLD').length > 0 && (
@@ -264,6 +351,7 @@ const HomeForm = () => {
                   <TableHead>
                     <TableRow>
                       <StyledTableCell />
+                      <StyledTableCell>Position</StyledTableCell>
                       <StyledTableCell>Appointment Number</StyledTableCell>
                       <StyledTableCell>Full name</StyledTableCell>
                     </TableRow>
@@ -309,10 +397,12 @@ const HomeForm = () => {
 Row.propTypes = {
   row: PropTypes.shape({
     _id: PropTypes.string.isRequired,
+    position: PropTypes.number,
     number: PropTypes.number.isRequired,
     personName: PropTypes.string,
     attentionDate: PropTypes.string.isRequired,
     status: PropTypes.string.isRequired,
+    medicalSpecializationName: PropTypes.string,
     observation: PropTypes.string,
   }).isRequired,
 };
@@ -332,13 +422,15 @@ function Row(props) {
       const appointmentStatus = {
         status: appointmentParams.status
       };
-      const appointmentResponse = await axios.put(`${appointmentsUrl}/${appointmentParams._id}`, appointmentStatus, {
-        headers: {
-          Authorization: user
-        }
-      });
-      console.log(appointmentResponse);
-      props.handleReloadTable();
+      if (appointmentStatus.status !== row.status) {
+        const appointmentResponse = await axios.put(`${appointmentsUrl}/${appointmentParams._id}`, appointmentStatus, {
+          headers: {
+            Authorization: user
+          }
+        });
+        console.log(appointmentResponse);
+        props.handleReloadTable();
+      };
     }
     catch (error) {
       console.log(error);
@@ -364,10 +456,14 @@ function Row(props) {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row">
-          {row.number}
-        </TableCell>
+        {row.position && (
+          <TableCell>{row.position}</TableCell>
+        )}
+        <TableCell component="th" scope="row">{row.number}</TableCell>
         <TableCell>{row.personName}</TableCell>
+        {row.medicalSpecializationName && (
+          <TableCell>{row.medicalSpecializationName}</TableCell>
+        )}
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -376,6 +472,83 @@ function Row(props) {
               <Typography gutterBottom component="div">
                 Observation: {row.observation}
               </Typography>
+              {row.status === 'STATUS_PRESCRIBED' && (
+                <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+                  <Grid item xs={6}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth={true}
+                      size="large"
+                      startIcon={<CheckIcon />}
+                      onClick={(event, newValue) => {
+                        setAppointmentParams({
+                          ...appointmentParams,
+                          status: 'STATUS_ATTENDED',
+                        });
+                      }}
+                      sx={{
+                        mt: "10px",
+                        color: "#ffffff",
+                        backgroundColor: "#d01716",
+                        width: "100%",
+                      }}
+                    >
+                      Attended
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth={true}
+                      size="large"
+                      startIcon={<ArchiveIcon />}
+                      onClick={(event, newValue) => {
+                        setAppointmentParams({
+                          ...appointmentParams,
+                          status: 'STATUS_PRESCRIBED_ARCHIVED',
+                        });
+                      }}
+                      sx={{
+                        mt: "10px",
+                        color: "#ffffff",
+                        backgroundColor: "#d01716",
+                        width: "100%",
+                      }}
+                    >
+                      Archive
+                    </Button>
+                  </Grid>
+                </Grid>
+              )}
+              {row.status === 'STATUS_PRESCRIBED_ARCHIVED' && (
+                <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+                  <Grid item xs={6}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth={true}
+                      size="large"
+                      startIcon={<UnarchiveIcon />}
+                      onClick={(event, newValue) => {
+                        setAppointmentParams({
+                          ...appointmentParams,
+                          status: 'STATUS_PRESCRIBED',
+                        });
+                      }}
+                      sx={{
+                        mt: "10px",
+                        color: "#ffffff",
+                        backgroundColor: "#d01716",
+                        width: "100%",
+                      }}
+                    >
+                      Unarchive
+                    </Button>
+                  </Grid>
+                </Grid>
+              )}
               {row.status === 'STATUS_ON-HOLD' && (
                 <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
                   <Grid item xs={6}>
