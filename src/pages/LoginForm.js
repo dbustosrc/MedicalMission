@@ -38,7 +38,7 @@ const baseUrl = API_BASE_URL.URI + 'loginUser';
 const LoginForm = () => {
     const theme = createTheme();
     const [remember, setRemember] = useState(false);
-    const { setUser, setUserName } = useAuth();
+    const { setUser, setUserName, setUserId, setUserRole } = useAuth();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     
@@ -94,8 +94,9 @@ const LoginForm = () => {
                     gethash: ''
                 };
                 const validationResponse = await axios.post(baseUrl, validateUser);
-                console.log(validationResponse);
                 setUserName(validationResponse.data.user.name + ' ' + validationResponse.data.user.surname);
+                setUserId(validationResponse.data.user._id);
+                setUserRole(validationResponse.data.user.role);
 
                 const loginResponse = await axios.post(baseUrl, values);
                 if (loginResponse.data.token) {

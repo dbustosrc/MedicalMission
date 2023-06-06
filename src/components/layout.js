@@ -63,6 +63,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ListIcon from '@mui/icons-material/List';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import SecurityIcon from '@mui/icons-material/Security';
 
 const drawerWidth = 240;
 
@@ -106,7 +107,7 @@ const BottomButtonsContainer = styled('div')({
 
 const Layout = () => {
   const navigate = useNavigate();
-  const { userName, user } = useAuth();
+  const { userName, user, userRole } = useAuth();
   const [open, setOpen] = React.useState(false);
   const drawerRef = useRef(null);
 
@@ -145,6 +146,11 @@ const Layout = () => {
   const handleNavigateSignOut = () => {
     navigate('/signout');
   };
+
+  const handleSetUserAllocations = () => {
+    navigate('/SetUserAllocations');
+  };
+
 
   const menuId = 'account-menu';
 
@@ -224,6 +230,14 @@ const Layout = () => {
             </ListItemButton>
             {user ? (
               <>
+                {userRole === 'ROLE_ADMIN' && (
+                  <ListItemButton onClick={handleSetUserAllocations} /*Set Users Allocations*/>
+                    <ListItemIcon>
+                      <SecurityIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Set Users Allocations" />
+                  </ListItemButton>
+                )}
                 <ListItemButton onClick={handleNavigateCreatePerson} /*Register Person*/>
                   <ListItemIcon>
                     <PersonAddIcon />
