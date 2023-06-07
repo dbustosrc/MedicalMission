@@ -10,10 +10,13 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 
+import { useNavigate } from "react-router-dom";
+
 const addressesUrl = API_BASE_URL.URI + 'addresses';
 const regionsUrl = API_BASE_URL.URI + 'regions';
 
 const AddressCreateForm = forwardRef((props, ref) => {
+  const navigate = useNavigate();
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const { user } = useAuth();
@@ -27,6 +30,12 @@ const AddressCreateForm = forwardRef((props, ref) => {
     district: '',
     region: ''
   });
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/signin");
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchRegions = async () => {

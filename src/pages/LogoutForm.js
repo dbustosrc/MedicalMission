@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import bg from "./bg/signin.png";
 import bgimg from "./bg/backimg.jpg";
@@ -42,15 +42,20 @@ const LogoutForm = () => {
         await logout(event);
     };
 
-    const { userName, setUserName, user, setUser } = useAuth();
+    const { user, setUser, setUserName, userName, signout } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!user) {
+          navigate("/signin");
+        }
+      }, [user, navigate]);
 
     const logout = useCallback(
         async (e) => {
             e.preventDefault();
 
-            setUser(null);
-            setUserName(null);
+            signout();
             navigate("/signin");
         },
         [setUser, setUserName]

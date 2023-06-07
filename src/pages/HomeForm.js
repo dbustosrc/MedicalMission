@@ -284,7 +284,7 @@ const HomeForm = () => {
                   <TableHead>
                     <TableRow>
                       <StyledTableCell />
-                      <StyledTableCell>Appointment Number</StyledTableCell>
+                      <StyledTableCell>Position</StyledTableCell>
                       <StyledTableCell>Full name</StyledTableCell>
                       <StyledTableCell>Medical Specialty</StyledTableCell>
                     </TableRow>
@@ -307,7 +307,6 @@ const HomeForm = () => {
                   <TableHead>
                     <TableRow>
                       <StyledTableCell />
-                      <StyledTableCell>Appointment Number</StyledTableCell>
                       <StyledTableCell>Full name</StyledTableCell>
                       <StyledTableCell>Medical Specialty</StyledTableCell>
                     </TableRow>
@@ -344,7 +343,7 @@ const HomeForm = () => {
       {selectedMedicalSpecialty != null && userAllocations.length > 0 && (
         <TableContainer component={Paper}>
           {filteredAppointments
-            .filter(appointment => appointment.status === 'STATUS_ON-HOLD').length > 0 && (
+            .filter(appointment => appointment.status === 'STATUS_CONFIRMED').length > 0 && (
               <>
                 <Typography variant='h5' mt={5} display="block" gutterBottom>Appointments Queue</Typography>
                 <Table>
@@ -352,13 +351,12 @@ const HomeForm = () => {
                     <TableRow>
                       <StyledTableCell />
                       <StyledTableCell>Position</StyledTableCell>
-                      <StyledTableCell>Appointment Number</StyledTableCell>
                       <StyledTableCell>Full name</StyledTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredAppointments
-                      .filter(appointment => appointment.status === 'STATUS_ON-HOLD')
+                      .filter(appointment => appointment.status === 'STATUS_CONFIRMED')
                       .map(appointment => (
                         <Row key={appointment._id} row={appointment} handleReloadTable={handleReloadTable} />
                       ))}
@@ -367,20 +365,19 @@ const HomeForm = () => {
               </>
             )}
           {filteredAppointments
-            .filter(appointment => appointment.status === 'STATUS_ON-HOLD_ARCHIVED').length > 0 && (
+            .filter(appointment => appointment.status === 'STATUS_CONFIRMED_ARCHIVED').length > 0 && (
               <>
                 <Typography variant='h5' mt={5} display="block" gutterBottom>Archived</Typography>
                 <Table>
                   <TableHead>
                     <TableRow>
                       <StyledTableCell />
-                      <StyledTableCell>Appointment Number</StyledTableCell>
                       <StyledTableCell>Full name</StyledTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredAppointments
-                      .filter(appointment => appointment.status === 'STATUS_ON-HOLD_ARCHIVED')
+                      .filter(appointment => appointment.status === 'STATUS_CONFIRMED_ARCHIVED')
                       .map(appointment => (
                         <Row key={appointment._id} row={appointment} handleReloadTable={handleReloadTable} />
                       ))}
@@ -399,6 +396,7 @@ Row.propTypes = {
     _id: PropTypes.string.isRequired,
     position: PropTypes.number,
     number: PropTypes.number.isRequired,
+    idCardNumber: PropTypes.string,
     personName: PropTypes.string,
     attentionDate: PropTypes.string.isRequired,
     status: PropTypes.string.isRequired,
@@ -459,8 +457,7 @@ function Row(props) {
         {row.position && (
           <TableCell>{row.position}</TableCell>
         )}
-        <TableCell component="th" scope="row">{row.number}</TableCell>
-        <TableCell>{row.personName}</TableCell>
+        <TableCell component="th" scope="row">{row.personName}</TableCell>
         {row.medicalSpecializationName && (
           <TableCell>{row.medicalSpecializationName}</TableCell>
         )}
@@ -469,9 +466,27 @@ function Row(props) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
-              <Typography gutterBottom component="div">
-                Observation: {row.observation}
+              <Typography variant="h6" gutterBottom component="div">
+                Appointment detail
               </Typography>
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID Card</TableCell>
+                    <TableCell>Appointment</TableCell>
+                    <TableCell>Observation</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow key={row.idCardNumber}>
+                    <TableCell component="th" scope="row">
+                      {row.idCardNumber}
+                    </TableCell>
+                    <TableCell>{row.number}</TableCell>
+                    <TableCell>{row.observation}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
               {row.status === 'STATUS_PRESCRIBED' && (
                 <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
                   <Grid item xs={6}>
@@ -549,7 +564,7 @@ function Row(props) {
                   </Grid>
                 </Grid>
               )}
-              {row.status === 'STATUS_ON-HOLD' && (
+              {row.status === 'STATUS_CONFIRMED' && (
                 <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
                   <Grid item xs={6}>
                     <Button
@@ -607,7 +622,7 @@ function Row(props) {
                       onClick={(event, newValue) => {
                         setAppointmentParams({
                           ...appointmentParams,
-                          status: 'STATUS_ON-HOLD_ARCHIVED',
+                          status: 'STATUS_CONFIRMED_ARCHIVED',
                         });
                       }}
                       sx={{
@@ -622,7 +637,7 @@ function Row(props) {
                   </Grid>
                 </Grid>
               )}
-              {row.status === 'STATUS_ON-HOLD_ARCHIVED' && (
+              {row.status === 'STATUS_CONFIRMED_ARCHIVED' && (
                 <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
                   <Grid item xs={6}>
                     <Button
@@ -634,7 +649,7 @@ function Row(props) {
                       onClick={(event, newValue) => {
                         setAppointmentParams({
                           ...appointmentParams,
-                          status: 'STATUS_ON-HOLD',
+                          status: 'STATUS_CONFIRMED',
                         });
                       }}
                       sx={{

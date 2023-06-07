@@ -146,6 +146,12 @@ const PersonCreateForm = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
 
   useEffect(() => {
+    if (!user) {
+      navigate("/signin");
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     const fetchEthnicGroups = async () => {
       try {
         const response = await axios.get(ethnicGroupsUrl, {
@@ -686,6 +692,8 @@ const PersonEditForm = () => {
 };
 
 const PersonListForm = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [personList, setPersonList] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -696,13 +704,23 @@ const PersonListForm = () => {
     fetchPersonData(1);
   }, [currentPage]);
 
+  useEffect(() => {
+    if (!user) {
+      navigate("/signin");
+    }
+  }, [user, navigate]);
+
   const fetchPersonData = (page) => {
     // Calcular el índice de inicio para la página actual
     const startIndex = page * perPage;
 
     // Realizar solicitud HTTP a la API para obtener los datos de las personas
     axios
-      .get(`${personUrl}/idCardNumbers/${page}`)
+      .get(`${personUrl}/idCardNumbers/${page}`, {
+        headers: {
+          Authorization: user,
+        },
+      })
       .then((response) => {
         // Actualizar el estado con los datos recibidos de la API
         setPersonList(response.data);

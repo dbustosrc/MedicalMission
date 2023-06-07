@@ -41,7 +41,7 @@ const LoginForm = () => {
     const { setUser, setUserName, setUserId, setUserRole } = useAuth();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         await login(event);

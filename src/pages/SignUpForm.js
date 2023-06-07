@@ -138,7 +138,7 @@ const SignUpForm = () => {
 
                     if (loginResponse.data.token) {
                         setUser(loginResponse.data.token);
-                        navigate("/NewPatient");
+                        navigate("/");
                     } else {
                         // Error de autenticación
                         setNameError(true);

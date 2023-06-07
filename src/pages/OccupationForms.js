@@ -1,5 +1,5 @@
 //import React, { useState } from 'react';
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useImperativeHandle, forwardRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { useAuth } from "../context/Auth";
@@ -9,10 +9,13 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 
+import { useNavigate } from "react-router-dom";
+
 const occupationsUrl = API_BASE_URL.URI + 'occupations';
 
 const OccupationCreateForm = forwardRef((props, ref) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: ''
     });
@@ -44,6 +47,12 @@ const OccupationCreateForm = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
         handleSubmit: handleSubmit
     }));
+
+    useEffect(() => {
+        if (!user) {
+            navigate("/signin");
+        }
+    }, [user, navigate]);
 
     return (
         <div>

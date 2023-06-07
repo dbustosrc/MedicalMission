@@ -7,8 +7,9 @@ import SignUpForm from "./pages/SignUpForm";
 import LoginForm from "./pages/LoginForm";
 import LogoutForm from "./pages/LogoutForm";
 import PersonCreateForm, { PersonEditForm, PersonListForm } from "./pages/PersonForms";
-import AppointmentCreateForm from "./pages/AppointmentsForm";
+import AppointmentCreateForm, { AppointmentsConfirmationForm, AppointmentsListForm } from "./pages/AppointmentsForm";
 import UnauthorizedForm from "./pages/UnauthorizedForm";
+import UsersAdministration from "./pages/UsersAdministrationForm";
 
 const App = () => {
   return (
@@ -26,6 +27,9 @@ const App = () => {
               <Route path="/EditPerson" element={<PersonEditForm />} />
               <Route path="/ListPersons" element={<PersonListForm />} />
               <Route path="/CreateAppointment" element={<AppointmentCreateForm />} />
+              <Route path="/AppointmentsConfirmation" element={<AppointmentsConfirmationForm />} />
+              <Route path="/UsersAdministration" element={<UsersAdministration/>} />
+              <Route path="/AppointmentsList" element={<AppointmentsListForm/>} />
             </Route>
           </Route>
         </Routes>

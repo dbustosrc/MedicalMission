@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 
 const EthnicGroupCreateForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: ''
   });
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/signin");
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setFormData({
