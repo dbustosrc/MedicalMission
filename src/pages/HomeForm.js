@@ -36,6 +36,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
 }));
 
+const dateOptions = { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' };
+
 const HomeForm = () => {
   const navigate = useNavigate();
   const { user, userId } = useAuth();
@@ -402,16 +404,23 @@ Row.propTypes = {
     status: PropTypes.string.isRequired,
     medicalSpecializationName: PropTypes.string,
     observation: PropTypes.string,
+    otherAppointments: PropTypes.arrayOf(
+      PropTypes.shape({
+        medicalSpecializationName: PropTypes.string,
+        attentionDate: PropTypes.string,
+        status: PropTypes.string,
+      }),
+    ),
   }).isRequired,
 };
 
-function Row(props) {
+function Row(props, comp) {
   const { user } = useAuth();
   const { row } = props;
   const [open, setOpen] = useState(false);
   const [appointmentParams, setAppointmentParams] = useState({
-    _id: row._id,
-    status: row.status,
+    _id: '',
+    status: '',
   });
 
   const handleSubmit = async (e) => {
@@ -439,8 +448,9 @@ function Row(props) {
     if (appointmentParams.status) {
       const e = { preventDefault: () => { } };
       handleSubmit(e);
+      //console.log(appointmentParams);
     }
-  }, [appointmentParams.status]);
+  }, [appointmentParams]);
 
   return (
     <Fragment>
@@ -473,7 +483,7 @@ function Row(props) {
                 <TableHead>
                   <TableRow>
                     <TableCell>ID Card</TableCell>
-                    <TableCell>Appointment</TableCell>
+                    <TableCell>Identification</TableCell>
                     <TableCell>Observation</TableCell>
                   </TableRow>
                 </TableHead>
@@ -482,11 +492,81 @@ function Row(props) {
                     <TableCell component="th" scope="row">
                       {row.idCardNumber}
                     </TableCell>
-                    <TableCell>{row.number}</TableCell>
+                    <TableCell>{row.identification}</TableCell>
                     <TableCell>{row.observation}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
+
+              {row.otherAppointments?.length > 0 && (
+                <div>
+                  <Typography variant="h6" gutterBottom component="div">
+                    Other Appointments
+                  </Typography>
+                  <Table size="small" aria-label="purchases">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Specialty</TableCell>
+                        <TableCell>Attention Date</TableCell>
+                        <TableCell>Attend</TableCell>
+                        <TableCell>Prescribe</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {row.otherAppointments.map(otherAppointment => (
+                        <TableRow key={otherAppointment.idCardNumber}>
+                          <TableCell component="th" scope="row">
+                            {otherAppointment.medicalSpecializationName}
+                          </TableCell>
+                          <TableCell>{otherAppointment.status}</TableCell>
+                          <TableCell><Button
+                            type="submit"
+                            variant="contained"
+                            fullWidth={true}
+                            size="large"
+                            startIcon={<CheckIcon />}
+                            onClick={(event, newValue) => {
+                              setAppointmentParams({
+                                ...appointmentParams,
+                                status: 'STATUS_ATTENDED',
+                                _id: otherAppointment._id
+                              });
+                            }}
+                            sx={{
+                              mt: "10px",
+                              color: "#ffffff",
+                              backgroundColor: "#d01716",
+                              width: "100%",
+                            }}
+                          >
+                          </Button></TableCell>
+                          <TableCell><Button
+                            type="submit"
+                            variant="contained"
+                            fullWidth={true}
+                            size="large"
+                            startIcon={<ReceiptLongIcon />}
+                            onClick={(event, newValue) => {
+                              setAppointmentParams({
+                                ...appointmentParams,
+                                status: 'STATUS_PRESCRIBED',
+                                _id: otherAppointment._id
+                              });
+                            }}
+                            sx={{
+                              mt: "10px",
+                              color: "#ffffff",
+                              backgroundColor: "#d01716",
+                              width: "100%",
+                            }}
+                          >
+                          </Button></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
               {row.status === 'STATUS_PRESCRIBED' && (
                 <Grid container spacing={0} sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
                   <Grid item xs={6}>
@@ -500,6 +580,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_ATTENDED',
+                          _id: row._id
                         });
                       }}
                       sx={{
@@ -523,6 +604,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_PRESCRIBED_ARCHIVED',
+                          _id: row._id
                         });
                       }}
                       sx={{
@@ -550,6 +632,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_PRESCRIBED',
+                          _id: row._id
                         });
                       }}
                       sx={{
@@ -577,6 +660,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_PRESCRIBED',
+                          _id: row._id
                         });
                       }}
                       sx={{
@@ -600,6 +684,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_ATTENDED',
+                          _id: row._id
                         });
                       }}
                       sx={{
@@ -623,6 +708,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_CONFIRMED_ARCHIVED',
+                          _id: row._id
                         });
                       }}
                       sx={{
@@ -650,6 +736,7 @@ function Row(props) {
                         setAppointmentParams({
                           ...appointmentParams,
                           status: 'STATUS_CONFIRMED',
+                          _id: row._id
                         });
                       }}
                       sx={{

@@ -300,12 +300,14 @@ const Layout = () => {
                     <ListItemText primary="Users Administration" />
                   </ListItemButton>
                 )}
+                {userRole === 'ROLE_ADMIN' && (
                 <ListItemButton onClick={handleNavigateCreatePerson} /*Register Person*/>
                   <ListItemIcon>
                     <PersonAddIcon />
                   </ListItemIcon>
                   <ListItemText primary="Register Person" />
                 </ListItemButton>
+                )}
                 <ListItemButton onClick={handleNavigateListPersons} /*People List*/>
                   <ListItemIcon>
                     <GroupsIcon />
@@ -318,12 +320,14 @@ const Layout = () => {
                   </ListItemIcon>
                   <ListItemText primary="Appointments List" />
                 </ListItemButton>
+                {userRole === 'ROLE_ADMIN' && (
                 <ListItemButton onClick={handleNavigateCreateAppointments} /*Register Appointments*/>
                   <ListItemIcon>
                     <AppRegistrationIcon />
                   </ListItemIcon>
                   <ListItemText primary="Register Appointments" />
                 </ListItemButton>
+                )}
                 <ListItemButton onClick={handleNavigateAppointmentsConfirmation} /*Appointments Confirmation*/>
                   <ListItemIcon>
                     <GradingIcon />
