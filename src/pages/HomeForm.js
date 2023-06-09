@@ -507,7 +507,7 @@ function Row(props, comp) {
                     <TableHead>
                       <TableRow>
                         <TableCell>Specialty</TableCell>
-                        <TableCell>Attention Date</TableCell>
+                        <TableCell>Status</TableCell>
                         <TableCell>Attend</TableCell>
                         <TableCell>Prescribe</TableCell>
                       </TableRow>
