@@ -71,6 +71,9 @@ const HomeForm = () => {
 
   //Collapsible table
   const [isCollapseOpen, setIsCollapseOpen] = useState(true);
+  
+  // Screen
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   useEffect(() => {
     if (!user) {
@@ -161,6 +164,19 @@ const HomeForm = () => {
       console.log(appointmentParams.period, appointmentParams.attentionDate);
     }
   }, [appointmentParams, reloadTable]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Limpiar el event listener al desmontar el componente
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleReloadTable = () => {
     setReloadTable(prevState => !prevState);
@@ -269,6 +285,7 @@ const HomeForm = () => {
             onChange={handlePharmacyChange}
             aria-label="Pharmacy"
             scrollButtons="auto"
+            allowScrollButtonsMobile
           >
             {userPharmacyAllocation.map((userAllocation) => (
               <Tab label={userAllocation.medicalSpecializationName} key={userAllocation._id} />
@@ -326,7 +343,7 @@ const HomeForm = () => {
         </TableContainer>
       )}
       <Box
-        sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', height: '100%' }}
+        sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', height: '100%', maxWidth: { xs: screenWidth, sm: screenWidth }}}
       >
         {userAllocations.length > 0 && (
           <Tabs
@@ -335,6 +352,7 @@ const HomeForm = () => {
             onChange={handleMedicalSpecialtyChange}
             aria-label="Medical Specialties"
             scrollButtons="auto"
+            allowScrollButtonsMobile
           >
             {userAllocations.map((userAllocation) => (
               <Tab label={userAllocation.medicalSpecializationName} key={userAllocation._id} />
@@ -519,48 +537,56 @@ function Row(props, comp) {
                             {otherAppointment.medicalSpecializationName}
                           </TableCell>
                           <TableCell>{otherAppointment.status}</TableCell>
-                          <TableCell><Button
-                            type="submit"
-                            variant="contained"
-                            fullWidth={true}
-                            size="large"
-                            startIcon={<CheckIcon />}
-                            onClick={(event, newValue) => {
-                              setAppointmentParams({
-                                ...appointmentParams,
-                                status: 'STATUS_ATTENDED',
-                                _id: otherAppointment._id
-                              });
-                            }}
-                            sx={{
-                              mt: "10px",
-                              color: "#ffffff",
-                              backgroundColor: "#d01716",
-                              width: "100%",
-                            }}
-                          >
-                          </Button></TableCell>
-                          <TableCell><Button
-                            type="submit"
-                            variant="contained"
-                            fullWidth={true}
-                            size="large"
-                            startIcon={<ReceiptLongIcon />}
-                            onClick={(event, newValue) => {
-                              setAppointmentParams({
-                                ...appointmentParams,
-                                status: 'STATUS_PRESCRIBED',
-                                _id: otherAppointment._id
-                              });
-                            }}
-                            sx={{
-                              mt: "10px",
-                              color: "#ffffff",
-                              backgroundColor: "#d01716",
-                              width: "100%",
-                            }}
-                          >
-                          </Button></TableCell>
+                          <TableCell>
+                            {otherAppointment.status === 'STATUS_CONFIRMED' && (
+                              <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth={true}
+                                size="large"
+                                startIcon={<CheckIcon />}
+                                onClick={(event, newValue) => {
+                                  setAppointmentParams({
+                                    ...appointmentParams,
+                                    status: 'STATUS_ATTENDED',
+                                    _id: otherAppointment._id
+                                  });
+                                }}
+                                sx={{
+                                  mt: "10px",
+                                  color: "#ffffff",
+                                  backgroundColor: "#d01716",
+                                  width: "100%",
+                                }}
+                              >
+                              </Button>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {otherAppointment.status === 'STATUS_CONFIRMED' && (
+                              <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth={true}
+                                size="large"
+                                startIcon={<ReceiptLongIcon />}
+                                onClick={(event, newValue) => {
+                                  setAppointmentParams({
+                                    ...appointmentParams,
+                                    status: 'STATUS_PRESCRIBED',
+                                    _id: otherAppointment._id
+                                  });
+                                }}
+                                sx={{
+                                  mt: "10px",
+                                  color: "#ffffff",
+                                  backgroundColor: "#d01716",
+                                  width: "100%",
+                                }}
+                              >
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
